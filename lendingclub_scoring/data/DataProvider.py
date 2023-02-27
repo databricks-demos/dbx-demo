@@ -138,11 +138,15 @@ class LendingClubDataProvider:
         return x_train, x_test, y_train, y_test
 
     def run(self):
+        df = self.prepare_data()
+        return self.prepare_training_and_test_sets(df)
+
+    def prepare_data(self):
         spark_df = self.load_and_transform_data()
         print(f"Loading dataset: {spark_df.count()} rows...")
         df = spark_df.toPandas()
         df = self.handle_cat_types(df)
-        return self.prepare_training_and_test_sets(df)
+        return df
 
     def load_and_transform_data_consumer(self) -> DataFrame:
         df = self.load_and_transform_data().toPandas()

@@ -4,6 +4,7 @@
   "data-path": "dbfs:/databricks-datasets/samples/lending_club/parquet",
   "output-path": "dbfs:/tmp/leout",
   "model-name": "LendingClubScoringModel",
+  "endpoint-name": "LendingClubScoringModel-Endpoint",
   "training_promote_candidates": false,
   "training_webhook_for_model_eval": false,
   "training_webhook_event": "MODEL_VERSION_TRANSITIONED_TO_STAGING",
