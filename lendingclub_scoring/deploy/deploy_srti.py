@@ -27,10 +27,12 @@ def prepare_scoring_data(spark) -> pd.DataFrame:
     data_provider = LendingClubDataProvider(spark, "select * from lendingclub", 100)
     return data_provider.prepare_data().drop(columns=["bad_loan"])
 
-def get_model_version_for_stage(model_name:str, stage:str)->str:
+
+def get_model_version_for_stage(model_name: str, stage: str) -> str:
     mlflow_client = MlflowClient()
     versions = mlflow_client.get_latest_versions(model_name, stages=[stage])
     return str(max([int(v.version) for v in versions]))
+
 
 def get_api_clent() -> ApiClient:
     config = EnvironmentVariableConfigProvider().get_config()
@@ -110,10 +112,12 @@ def query_endpoint(endpoint_name: str, df: pd.DataFrame) -> Tuple[Any, int]:
     return response.json(), (end_time - start_time) / 1_000_000
 
 
-
-
-
-def test_endpoint(endpoint_name:str, latency_threshold:int, qps_threshold:int, test_data_df:pd.DataFrame):
+def test_endpoint(
+    endpoint_name: str,
+    latency_threshold: int,
+    qps_threshold: int,
+    test_data_df: pd.DataFrame,
+):
     durations = []
     for i in range(300):
         res_json, duration = query_endpoint(endpoint_name, test_data_df)
@@ -123,7 +127,7 @@ def test_endpoint(endpoint_name:str, latency_threshold:int, qps_threshold:int, t
             if len(preds) != 10:
                 raise Exception("Wrong number of predictions!")
     p95 = np.percentile(durations, 95)
-    qps = len(durations)/(sum(durations)/1000)
+    qps = len(durations) / (sum(durations) / 1000)
     print(f"Observed latency (P90): {p95}. Observed QPS: {qps}.")
     if p95 > latency_threshold:
         raise Exception(
@@ -185,8 +189,7 @@ def get_model_endpoint_config(
         return None
 
 
-def perform_prod_deployment(
-):
+def perform_prod_deployment():
     conf = read_config("lendingclub_config.json")
     model_name = conf["model-name"]
     endpoint_name = conf["endpoint-name"]
@@ -215,7 +218,9 @@ def perform_integration_test():
     api_client = get_api_clent()
     spark = create_spark_session()
     test_data_df = prepare_scoring_data(spark)[:10]
-    creation_res = create_serving_endpoint(api_client, endpoint_name, model_name, model_version)
+    creation_res = create_serving_endpoint(
+        api_client, endpoint_name, model_name, model_version
+    )
     time.sleep(100)
     if wait_for_endpoint_to_become_ready(api_client, endpoint_name):
         test_endpoint(endpoint_name, p95_threshold, qps_threshold, test_data_df)
@@ -224,7 +229,9 @@ def perform_integration_test():
         print("Endpoint failed to become ready within timeout. ")
         raise Exception("Endpoint failed to become ready within timeout. ")
 
+
 import os
-os.environ["MLFLOW_TRACKING_URI"]="databricks"
+
+os.environ["MLFLOW_TRACKING_URI"] = "databricks"
 perform_integration_test()
 perform_prod_deployment()
